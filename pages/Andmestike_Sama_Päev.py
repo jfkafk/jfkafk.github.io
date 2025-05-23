@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import requests
 import io
 import streamlit as st
-import calplot
+import concurrent.futures
 
 # API
 API_URL = "https://decision.cs.taltech.ee/electricity/api/"
@@ -16,6 +16,14 @@ def fetch_metadata():
         return response.json()
     else:
         raise Exception("Failed to fetch metadata from API.")
+
+def process_entry(entry, target_day):
+    hash_ = entry['dataset']
+    df = load_csv_from_hash(hash_)
+    if df is not None:
+        day_df = extract_target_day(df, target_day)
+        if day_df is not None and not day_df.empty:
+            return day_df[['Periood', 'consumption']]
 
 def load_csv_from_hash(hash_):
     url = DATA_URL + hash_ + ".csv"
@@ -74,20 +82,12 @@ def extract_target_day(df, target_day: str):
 
 def collect_all_one_day(target_day="2024-04-12"):
     metadata = fetch_metadata()
-    all_rows = []
 
-    for entry in metadata:
-        hash_ = entry['dataset']
-        df = load_csv_from_hash(hash_)
-        if df is not None:
-            day_df = extract_target_day(df, target_day)
-            if day_df is not None and not day_df.empty:
-                # Keep only required columns
-                day_df = day_df[['Periood', 'consumption']]
-                all_rows.append(day_df)
-            else:
-                continue
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        futures = [executor.submit(process_entry, entry, target_day) for entry in metadata]
+        results = [f.result() for f in concurrent.futures.as_completed(futures)]
 
+    all_rows = [r for r in results if r is not None]
     if all_rows:
         combined_df = pd.concat(all_rows, ignore_index=True)
         print(f"Combined dataframe shape: {combined_df.shape}")
