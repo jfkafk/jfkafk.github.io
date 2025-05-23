@@ -77,15 +77,12 @@ def plot_hourly_by_month(df: pd.DataFrame):
     fig, ax = plt.subplots(figsize=(25, 11))
     hourly_monthly.T.plot(ax=ax)
 
-    # Increase font sizes
     ax.set_title('Average Hourly Consumption per Month', fontsize=26)
     ax.set_xlabel('Hour of Day', fontsize=24)
     ax.set_ylabel('Average Consumption', fontsize=20)
 
-    # Increase tick label size
     ax.tick_params(axis='both', which='major', labelsize=18)
 
-    # Increase legend font size
     legend = ax.legend(title='Month', bbox_to_anchor=(1.01, 1), loc='upper left')
     legend.get_title().set_fontsize(20)
     for text in legend.get_texts():
@@ -102,9 +99,8 @@ def design(circle_plt, calendar, hourly_by_month):
     st.pyplot(circle_plt)
     st.markdown("_Keskmine tarbimine iga tunni jooksul päevas._")
 
-    st.markdown("---")  # Horizontal divider for clarity
+    st.markdown("---")
 
-    # Section 2: Calendar heatmap with container and caption
     st.subheader("Päeva kogutarbimise heatmap")
     with st.container():
         st.pyplot(calendar)
@@ -112,26 +108,24 @@ def design(circle_plt, calendar, hourly_by_month):
 
     st.markdown("---")
 
-    # Section 3: Hourly by month line plot with wider container and caption
     st.subheader("Kuu keskmine päevane tarbimine igal tunnil")
     with st.container():
         st.pyplot(hourly_by_month)
         st.markdown("_Keskmine energiatarbimine tunniti kuu lõikes._")
 
-    # Optionally, add some space at the end
     st.markdown("<br>", unsafe_allow_html=True)
 
-if __name__ == "__main__":
-    # Load and clean
+def main():
     filename = "raw-loaded-data.csv"
     contents = load_data_from_file(filename)
     df = clean_data(contents)
 
-    # Create plt's.
     circle = create_hourly_average_circle(df)
     fig3 = plot_calendar_heatmap(df)
     fig4 = plot_hourly_by_month(df)
 
-    # Display
     design(circle, fig3, fig4)
+
+if __name__ == "__main__":
+    main()
 
