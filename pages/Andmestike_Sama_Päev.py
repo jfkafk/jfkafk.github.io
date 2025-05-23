@@ -1,3 +1,5 @@
+import random
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -80,11 +82,13 @@ def extract_target_day(df, target_day: str):
     day_df = day_df.rename(columns={consumption_col: 'consumption'})
     return day_df[['Periood', 'consumption']]
 
-def collect_all_one_day(target_day="2024-04-12"):
+def collect_all_one_day(target_day="2024-04-12", sample_size=25):
     metadata = fetch_metadata()
 
+    random_entries = random.sample(metadata, min(sample_size, len(metadata)))
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        futures = [executor.submit(process_entry, entry, target_day) for entry in metadata]
+        futures = [executor.submit(process_entry, entry, target_day) for entry in random_entries]
         results = [f.result() for f in concurrent.futures.as_completed(futures)]
 
     all_rows = [r for r in results if r is not None]
@@ -202,11 +206,18 @@ def main():
         min_value=pd.to_datetime("2020-01-01"),
         max_value=pd.to_datetime("2025-12-31"),
     )
+    sample_size = st.slider(
+        "Vali juhuslikult valitud andmestike arv (5–80):",
+        min_value=5,
+        max_value=80,
+        value=10,
+        step=1
+    )
 
     # Convert to string in the format YYYY-MM-DD
     target_day = selected_date.strftime("%Y-%m-%d")
 
-    df = collect_all_one_day(target_day=target_day)
+    df = collect_all_one_day(target_day=target_day, sample_size=sample_size)
 
     if df.empty:
         st.error(f"No valid data found for the target day: {target_day}")
