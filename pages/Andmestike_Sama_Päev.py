@@ -5,6 +5,8 @@ import requests
 import io
 import streamlit as st
 import concurrent.futures
+import requests_cache
+requests_cache.install_cache("elec_cache", expire_after=7200)
 
 # API
 API_URL = "https://decision.cs.taltech.ee/electricity/api/"
