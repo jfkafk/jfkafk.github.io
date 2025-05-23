@@ -92,7 +92,7 @@ def plot_hourly_by_month(df: pd.DataFrame):
     return fig
 
 def design(circle_plt, calendar, hourly_by_month):
-    st.title("Interesting Visualizations of Energy Usage")
+    st.title("Ühe Andmestiku Visualisatsioon")
 
     # Section 1: Circle plot
     st.subheader("Keskmine iga tunni jooksul")
